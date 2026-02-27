@@ -27,6 +27,10 @@
 ;; ====================================== Answers ======================================
 
 ; 2.1: TODO
+; If we reach aunit we reached end, return empty list
+; If its apair, and first element is a list, then recurse through that nested list
+; If not then just use that value
+; Then conver tthe rest of the pairs
 (define (mfpl-list->rkt-list lst)
   (cond
     [(aunit? lst)
@@ -43,6 +47,10 @@
      (error "not an mfpl list")]))
 
 ; 2.2: TODO
+; If the list is empty, return aunit
+; If not take the first element, if its a list recurse throught that
+; If not then just use that value
+; Build everything using apair
 (define (rkt-list->mfpl-list lst)
    (if (empty? lst)
       (aunit)
@@ -74,7 +82,10 @@
        (if (and (int? v1) (int? v2))
            (int (+ (int-num v1) (int-num v2)))
            (error "MF/PL addition applied to non-number")))]
+    ; If it's an integer then it evaluates to itself
     [(int? e) e]
+    ;Evaluate the two numbers being compared
+    ;If v1 > v2, then e3, otherwise e4
     [(if>? e)
      (let ([v1 (eval-under-env (if>-e1 e) env)] [v2 (eval-under-env (if>-e2 e) env)])
        (if (and (int? v1) (int? v2))
@@ -82,11 +93,13 @@
                (eval-under-env (if>-e3 e) env)
                (eval-under-env (if>-e4 e) env))
            (error "MF/PL if> applied to non-number")))]
+    ; Return the first element in a apair if the expression is apair
     [(fst? e)
      (let ([v (eval-under-env (fst-e e) env)])
        (if (apair? v)
            (apair-e1 v)
            (error "MF/PL fst applied to non-pair")))]
+    ; Return the second element in a apair if the expression is apair
     [(snd? e)
      (let ([v (eval-under-env (snd-e e) env)])
        (if (apair? v)
@@ -97,11 +110,15 @@
        (if (aunit? v)
            (int 1)
            (int 0)))]
+    ; Evaluate the expression, then exrtend the environment with variable and value
     [(mlet? e)
      (let ([v (eval-under-env (mlet-e e) env)])
        (eval-under-env
         (mlet-body e)
         (cons (cons (mlet-var e) v) env)))]
+    ;Ensures the function expression is a closure
+    ;Use the closure's environment
+    ;If it's recursive add it's own name to the enviornment
     [(call? e)
      (let ([funval (eval-under-env (call-funexp e) env)] [actval (eval-under-env (call-actual e) env)])
        (if (closure? funval)
@@ -120,6 +137,8 @@
              ;call the function
              (eval-under-env (fun-body funexpr) final-env))
            (error "MF/PL: call applied to non-function")))]
+    ; Don't evaluate body right away
+    ; Create a closure with the environment
     [(fun? e)
      (closure env e)]
     [(apair? e)
@@ -134,10 +153,15 @@
   (eval-under-env e null))
 
 ; 2.4: TODO
+; Check if the first element is aunit, if it is
+; then 1 > 0, so we reutnr e2, otherwise e3
 (define (ifaunit e1 e2 e3)
   (if> (isaunit e1) (int 0) e2 e3))
 
 ; 2.5: TODO
+; If list is empty, evaluate to e2
+; If not, take  the pair (variable expression)
+; Then create an mlet binding that recurisvely wraps the rest of the bindings
 (define (mlet* lstlst e2)
   (if (empty? lstlst)
       e2
@@ -149,6 +173,9 @@
                                  
 
 ; 2.6: TODO
+; Checks if e1 and e2 are equal by checking if
+; e1 !> e2 and that e2!>e1
+; If it's neither of these then they are equal
 (define (if= e1 e2 e3 e4)
   (if> e1 e2
        e4
