@@ -28,6 +28,9 @@
     (λ () (f 0 1))))
 
 ; 1.3: TODO
+; Call the stream and check if (car p) satisfies f
+; if it does, add it to the list
+; Then call the function again with rest of stream
 (define (filter-stream f s)
   (λ ()
     (let ([p (s)])
@@ -37,14 +40,16 @@
           ((filter-stream f (cdr p)))))))
 
 ; 1.4: TODO
+; g takes a current index, computes (f i) and cons that value with a λ that calls g on (i + delta)
+; gets initiatilized with i0
 (define-syntax create-stream
   (syntax-rules (using starting at with increment)
     [(create-stream name using f starting at i0 with increment delta)
      (define name
-       (letrec ([g (lambda (i)
+       (letrec ([g (λ (i)
                      (cons (f i)
-                           (lambda () (g (+ i delta)))))])
-         (lambda () (g i0))))]))
+                           (λ () (g (+ i delta)))))])
+         (λ () (g i0))))]))
 
 
 
